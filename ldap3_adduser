@@ -1,0 +1,40 @@
+# -*- coding: utf8 -*-
+AD_SERVER = 'server_ip'
+AD_USER = 'domainname\ldap-user'
+AD_PASSWORD = 'password'
+AD_SEARCH_TREE = 'dc=egisznso, dc=ru'
+usersOU = 'OU=!TEST_OU,OU=,DC=,DC=ru'
+groupsOU = 'OU=!TEST_OU,OU=,DC=,DC=ru'
+attrs = ['cn','memberOf','description']
+search_filter = "(&(objectClass=*)(sAMAccountName=*)(memberOf=*)(sn=*))"
+from ldap3 import Server, Connection, NTLM, ALL
+from ldap3.extend.microsoft.addMembersToGroups import ad_add_members_to_groups as addUsersInGroups
+import regex,re
+server = Server('')
+conn = Connection(server, user="domainname\ldap-user", password="", authentication=NTLM, auto_bind=True)
+dn = "OU=!TEST_OU ,OU= ,DC=,DC=ru"
+print(conn.search(dn, search_filter, attributes=attrs))
+print(conn.entries)
+
+# mass = []
+# poisk = 'lpu-users'
+# for i in conn.entries:
+#     #print(i)
+#     mass.append(str(i))
+#
+# for i in mass:
+#     #print(i)
+#     #print(i.count("CN=lpu"))
+#     if i.count("CN=lpu") >= 2: #ищем где у пользвака две лпушки ( совместитель )
+#         print(i)
+#
+
+conn.add(usersOU, 'organizationalUnit') # add test-ou for users
+conn.add(groupsOU, 'organizationalUnit')
+#conn.add('OU=USERS,OU=!TEST_OU,OU=MO NSO,DC=egisznso,DC=ru', 'organizationalUnit')
+fio = 'Иван Тестович Барсов'
+fname = 'Тестовая учетная запись'
+sname = 'Барсович петрович'
+name = 'Тестовая учетка'
+conn.add('cn=' + fio + ',OU=USERS,OU=!TEST_OU,OU=,DC=,DC=ru', 'user', {'sAMAccountName': fio, 'userPrincipalName': fio,'givenName': fname, 'sn': sname, 'displayName': name, 'mail': fio + '@example.com'})
+print(conn.result)
